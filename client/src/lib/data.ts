@@ -1,187 +1,153 @@
 import { Product, Category, CartProductItem } from "@shared/schema";
+import { queryClient, apiRequest } from "./queryClient";
 
-export const featuredProducts: Product[] = [
-  {
-    id: 1,
-    name: "iPhone 13 Pro",
-    description: "The iPhone 13 Pro is Apple's most advanced iPhone to date, featuring the powerful A15 Bionic chip, a stunning Super Retina XDR display with ProMotion technology, and an advanced camera system.",
-    price: 999.99,
-    category: "Electronics",
-    imageUrl: "https://images.unsplash.com/photo-1585060544812-6b45742d762f?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&h=500&q=80",
-    rating: 4.5,
-    numReviews: 128,
-    isNew: true,
-    isSale: false,
-  },
-  {
-    id: 2,
-    name: "Samsung Galaxy S21",
-    description: "The Samsung Galaxy S21 features a dynamic AMOLED display, powerful camera system, and 5G capability for ultra-fast performance.",
-    price: 799.99,
-    oldPrice: 899.99,
-    category: "Electronics",
-    imageUrl: "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&h=500&q=80",
-    rating: 4.0,
-    numReviews: 94,
-    isNew: false,
-    isSale: true,
-  },
-  {
-    id: 3,
-    name: "MacBook Pro M2",
-    description: "The MacBook Pro with M2 chip delivers incredible performance, long battery life, and a brilliant Retina display, perfect for professionals.",
-    price: 1899.99,
-    category: "Electronics",
-    imageUrl: "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&h=500&q=80",
-    rating: 5.0,
-    numReviews: 216,
-    isNew: false,
-    isSale: false,
-  },
-  {
-    id: 4,
-    name: "Noise Cancelling Headphones",
-    description: "Experience premium sound quality with these wireless headphones featuring active noise cancellation technology.",
-    price: 249.99,
-    category: "Electronics",
-    imageUrl: "https://images.unsplash.com/photo-1606813907291-d86efa9b94db?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&h=500&q=80",
-    rating: 3.5,
-    numReviews: 73,
-    isNew: false,
-    isSale: false,
-  },
-];
+// Re-export these types for convenience
+export type { Product, Category, CartProductItem };
 
-export const clothingProducts: Product[] = [
-  {
-    id: 5,
-    name: "Classic Oxford Shirt",
-    description: "A timeless oxford shirt made from premium cotton for comfort and durability.",
-    price: 49.99,
-    category: "Clothing",
-    imageUrl: "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400&q=80",
-    rating: 4.0,
-    numReviews: 42,
-    isNew: false,
-    isSale: false,
-  },
-  {
-    id: 6,
-    name: "Denim Jacket",
-    description: "A classic denim jacket that never goes out of style, perfect for any casual outfit.",
-    price: 89.99,
-    category: "Clothing",
-    imageUrl: "https://images.unsplash.com/photo-1552902865-b72c031ac5ea?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400&q=80",
-    rating: 4.2,
-    numReviews: 36,
-    isNew: false,
-    isSale: false,
-  },
-  {
-    id: 7,
-    name: "Running Sneakers",
-    description: "Lightweight and comfortable running shoes with advanced cushioning technology.",
-    price: 129.99,
-    category: "Footwear",
-    imageUrl: "https://images.unsplash.com/photo-1591369822096-ffd140ec948f?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400&q=80",
-    rating: 4.7,
-    numReviews: 89,
-    isNew: true,
-    isSale: false,
-  },
-  {
-    id: 8,
-    name: "Classic Watch",
-    description: "A timeless wristwatch with premium materials and precise movement.",
-    price: 199.99,
-    category: "Accessories",
-    imageUrl: "https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400&q=80",
-    rating: 4.5,
-    numReviews: 52,
-    isNew: false,
-    isSale: false,
-  },
-  {
-    id: 9,
-    name: "Stylish Sunglasses",
-    description: "Protect your eyes in style with these fashionable sunglasses with UV protection.",
-    price: 79.99,
-    category: "Accessories",
-    imageUrl: "https://images.unsplash.com/photo-1576566588028-4147f3842f27?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400&q=80",
-    rating: 4.0,
-    numReviews: 28,
-    isNew: false,
-    isSale: false,
-  },
-];
+// These static variables will be replaced with API calls
+let _cachedProducts: Product[] = [];
+let _cachedCategories: Category[] = [];
 
-export const moreElectronics: Product[] = [
-  {
-    id: 10,
-    name: "Smart Watch Series 7",
-    description: "A powerful smartwatch with health tracking features and seamless connectivity.",
-    price: 399.99,
-    category: "Electronics",
-    imageUrl: "https://images.unsplash.com/photo-1546868871-7041f2a55e12?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&h=500&q=80",
-    rating: 4.0,
-    numReviews: 52,
-    isNew: false,
-    isSale: false,
-  },
-  {
-    id: 11,
-    name: "Portable Bluetooth Speaker",
-    description: "A powerful portable speaker with deep bass and long battery life.",
-    price: 129.99,
-    oldPrice: 159.99,
-    category: "Electronics",
-    imageUrl: "https://images.unsplash.com/photo-1574944985070-8f3ebc6b79d2?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&h=500&q=80",
-    rating: 4.5,
-    numReviews: 87,
-    isNew: false,
-    isSale: true,
-  },
-];
+// Helper functions to fetch products from the API
+export async function fetchProducts(): Promise<Product[]> {
+  try {
+    const response = await fetch('/api/products');
+    if (!response.ok) {
+      throw new Error('Failed to fetch products');
+    }
+    const data = await response.json();
+    _cachedProducts = data;
+    return data;
+  } catch (error) {
+    console.error('Error fetching products:', error);
+    return _cachedProducts;
+  }
+}
 
-export const allProducts: Product[] = [
-  ...featuredProducts,
-  ...clothingProducts,
-  ...moreElectronics,
-];
+export async function fetchCategories(): Promise<Category[]> {
+  try {
+    const response = await fetch('/api/categories');
+    if (!response.ok) {
+      throw new Error('Failed to fetch categories');
+    }
+    const data = await response.json();
+    _cachedCategories = data;
+    return data;
+  } catch (error) {
+    console.error('Error fetching categories:', error);
+    return _cachedCategories;
+  }
+}
 
-export const featuredCategories: Category[] = [
-  {
-    id: 1,
-    name: "Smartphones",
-    imageUrl: "https://images.unsplash.com/photo-1546027658-7aa750153465?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&h=300&q=80",
-  },
-  {
-    id: 2,
-    name: "Laptops",
-    imageUrl: "https://images.unsplash.com/photo-1525547719571-a2d4ac8945e2?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&h=300&q=80",
-  },
-  {
-    id: 3,
-    name: "Clothing",
-    imageUrl: "https://images.unsplash.com/photo-1617817546276-1b6e2ec189c0?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&h=300&q=80",
-  },
-  {
-    id: 4,
-    name: "Accessories",
-    imageUrl: "https://images.unsplash.com/photo-1541643600914-78b084683601?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&h=300&q=80",
-  },
-];
+export async function fetchProductsByCategory(category: string): Promise<Product[]> {
+  try {
+    const response = await fetch(`/api/products/category/${category}`);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch products in category ${category}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error(`Error fetching products in category ${category}:`, error);
+    return _cachedProducts.filter(p => p.category === category);
+  }
+}
 
+export async function fetchProductById(id: number): Promise<Product | undefined> {
+  try {
+    const response = await fetch(`/api/products/${id}`);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch product with id ${id}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error(`Error fetching product with id ${id}:`, error);
+    return _cachedProducts.find(p => p.id === id);
+  }
+}
+
+export async function searchProducts(query: string): Promise<Product[]> {
+  try {
+    const response = await fetch(`/api/products/search?q=${encodeURIComponent(query)}`);
+    if (!response.ok) {
+      throw new Error('Failed to search products');
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error searching products:', error);
+    return _cachedProducts.filter(p => p.name.toLowerCase().includes(query.toLowerCase()));
+  }
+}
+
+// Functions that help with accessing products and categories
+export async function getFeaturedProducts(limit: number = 4): Promise<Product[]> {
+  let products = _cachedProducts;
+  if (products.length === 0) {
+    products = await fetchProducts();
+  }
+  return products.filter(p => p.isNew || p.isSale).slice(0, limit);
+}
+
+export async function getClothingProducts(limit: number = 5): Promise<Product[]> {
+  let products = _cachedProducts;
+  if (products.length === 0) {
+    products = await fetchProducts();
+  }
+  return products.filter(p => p.category === "Clothing").slice(0, limit);
+}
+
+export async function getElectronicsProducts(limit: number = 5): Promise<Product[]> {
+  let products = _cachedProducts;
+  if (products.length === 0) {
+    products = await fetchProducts();
+  }
+  return products.filter(p => p.category === "Electronics").slice(0, limit);
+}
+
+export async function getAllProducts(): Promise<Product[]> {
+  if (_cachedProducts.length === 0) {
+    return await fetchProducts();
+  }
+  return _cachedProducts;
+}
+
+export async function getCategories(): Promise<Category[]> {
+  if (_cachedCategories.length === 0) {
+    return await fetchCategories();
+  }
+  return _cachedCategories;
+}
+
+export async function getProduct(id: number): Promise<Product | undefined> {
+  const cachedProduct = _cachedProducts.find(p => p.id === id);
+  if (cachedProduct) {
+    return cachedProduct;
+  }
+  return await fetchProductById(id);
+}
+
+export async function getRelatedProducts(product: Product, limit: number = 4): Promise<Product[]> {
+  let products = _cachedProducts;
+  if (products.length === 0) {
+    products = await fetchProducts();
+  }
+  
+  return products
+    .filter(p => p.category === product.category && p.id !== product.id)
+    .slice(0, limit);
+}
+
+// Exporting a function to get all products
+export async function allProducts(): Promise<Product[]> {
+  return await getAllProducts();
+}
+
+// We'll keep these static for backward compatibility, but we'll eventually replace all usages
 export const allCategories = [
   "Electronics",
   "Smartphones",
-  "Computers",
+  "Laptops & Computers",
   "Clothing",
   "Accessories",
-  "Home & Kitchen",
-  "Sports",
-  "Beauty",
-  "Toys",
 ];
 
 export const productImages = {
@@ -191,14 +157,4 @@ export const productImages = {
     "https://images.unsplash.com/photo-1591337676887-a217a6970a8a?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&h=200&q=80",
     "https://images.unsplash.com/photo-1565775017923-2a732fecaf64?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&h=200&q=80",
   ]
-};
-
-export const getProduct = (id: number): Product | undefined => {
-  return allProducts.find(product => product.id === id);
-};
-
-export const getRelatedProducts = (product: Product, limit: number = 4): Product[] => {
-  return allProducts
-    .filter(p => p.category === product.category && p.id !== product.id)
-    .slice(0, limit);
 };

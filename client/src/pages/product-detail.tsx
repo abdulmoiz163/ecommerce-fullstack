@@ -1,9 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useLocation } from "wouter";
 import { useCart } from "@/providers/cart-provider";
 import StarRating from "@/components/ui/star-rating";
 import ProductCard from "@/components/ui/product-card";
-import { getProduct, getRelatedProducts, productImages } from "@/lib/data";
+import { getProduct, getRelatedProducts, productImages, Product } from "@/lib/data";
 
 const ProductDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -14,15 +14,52 @@ const ProductDetail: React.FC = () => {
   const [selectedImage, setSelectedImage] = useState(0);
   const [selectedColor, setSelectedColor] = useState("black");
   const [selectedStorage, setSelectedStorage] = useState("256GB");
+  const [product, setProduct] = useState<Product | undefined>(undefined);
+  const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const product = getProduct(parseInt(id));
+  useEffect(() => {
+    const loadProduct = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        
+        const productData = await getProduct(parseInt(id));
+        setProduct(productData);
+        
+        if (productData) {
+          const relatedProductsData = await getRelatedProducts(productData);
+          setRelatedProducts(relatedProductsData);
+        }
+      } catch (error) {
+        console.error("Error loading product data:", error);
+        setError("Failed to load product. Please try again later.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadProduct();
+  }, [id]);
   
-  if (!product) {
+  if (isLoading) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="bg-white rounded-lg shadow-sm p-6 text-center">
+          <h1 className="text-2xl font-bold mb-4">Loading Product...</h1>
+          <p className="mb-6">Please wait while we fetch the product details.</p>
+        </div>
+      </div>
+    );
+  }
+  
+  if (error || !product) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="bg-white rounded-lg shadow-sm p-6 text-center">
           <h1 className="text-2xl font-bold mb-4">Product Not Found</h1>
-          <p className="mb-6">Sorry, the product you are looking for does not exist.</p>
+          <p className="mb-6">{error || "Sorry, the product you are looking for does not exist."}</p>
           <button 
             onClick={() => setLocation("/products")}
             className="bg-primary text-white px-6 py-3 rounded-md hover:bg-blue-700 transition-colors"
@@ -33,8 +70,6 @@ const ProductDetail: React.FC = () => {
       </div>
     );
   }
-
-  const relatedProducts = getRelatedProducts(product);
   
   const handleAddToCart = () => {
     addToCart(product, quantity);
@@ -113,13 +148,24 @@ const ProductDetail: React.FC = () => {
             <h1 className="text-2xl font-bold mb-2">{product.name}</h1>
             <div className="flex items-center mb-2">
               <StarRating rating={product.rating} reviews={product.numReviews} size="lg" />
-              <span className="text-text-secondary ml-2">{product.rating} ({product.numReviews} reviews)</span>
+              <span className="text-text-secondary ml-2">
+                {typeof product.rating === 'number' ? product.rating : parseFloat(product.rating as string)} 
+                ({typeof product.numReviews === 'number' ? product.numReviews : parseInt(product.numReviews as string)} reviews)
+              </span>
             </div>
             
             <div className="mb-4">
-              <span className="text-3xl font-bold text-error">${product.price.toFixed(2)}</span>
+              <span className="text-3xl font-bold text-error">
+                ${typeof product.price === 'number' 
+                  ? product.price.toFixed(2) 
+                  : parseFloat(product.price as string).toFixed(2)}
+              </span>
               {product.oldPrice && (
-                <span className="text-text-secondary text-xl line-through ml-2">${product.oldPrice.toFixed(2)}</span>
+                <span className="text-text-secondary text-xl line-through ml-2">
+                  ${typeof product.oldPrice === 'number' 
+                    ? product.oldPrice.toFixed(2) 
+                    : parseFloat(product.oldPrice as string).toFixed(2)}
+                </span>
               )}
             </div>
             
@@ -259,7 +305,7 @@ const ProductDetail: React.FC = () => {
               className={`px-4 py-2 border-b-2 ${activeTab === 'reviews' ? 'border-primary text-primary' : 'border-transparent text-text-secondary hover:text-primary'} font-medium`}
               onClick={() => setActiveTab('reviews')}
             >
-              Reviews ({product.numReviews})
+              Reviews ({typeof product.numReviews === 'number' ? product.numReviews : parseInt(product.numReviews as string)})
             </button>
             <button 
               className={`px-4 py-2 border-b-2 ${activeTab === 'faqs' ? 'border-primary text-primary' : 'border-transparent text-text-secondary hover:text-primary'} font-medium`}
@@ -377,7 +423,7 @@ const ProductDetail: React.FC = () => {
               
               <div className="mt-6">
                 <button className="text-primary hover:underline flex items-center">
-                  See all {product.numReviews} reviews
+                  See all {typeof product.numReviews === 'number' ? product.numReviews : parseInt(product.numReviews as string)} reviews
                   <i className="fas fa-chevron-right ml-1 text-xs"></i>
                 </button>
               </div>

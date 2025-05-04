@@ -52,9 +52,17 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, size = "md" }) => {
         )}
         <div className="flex justify-between items-center">
           <div>
-            <span className={`font-bold text-error ${isSmall ? "text-sm" : ""}`}>${product.price.toFixed(2)}</span>
+            <span className={`font-bold text-error ${isSmall ? "text-sm" : ""}`}>
+              ${typeof product.price === 'number' 
+                ? product.price.toFixed(2) 
+                : parseFloat(product.price as string).toFixed(2)}
+            </span>
             {product.oldPrice && (
-              <span className="text-text-secondary text-sm line-through ml-2">${product.oldPrice.toFixed(2)}</span>
+              <span className="text-text-secondary text-sm line-through ml-2">
+                ${typeof product.oldPrice === 'number' 
+                  ? product.oldPrice.toFixed(2) 
+                  : parseFloat(product.oldPrice as string).toFixed(2)}
+              </span>
             )}
           </div>
           <button 

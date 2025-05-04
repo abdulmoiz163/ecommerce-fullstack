@@ -1,12 +1,46 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import ProductGrid from "@/components/ui/product-grid";
 import ProductCard from "@/components/ui/product-card";
 import CategoryCard from "@/components/ui/category-card";
-import { featuredProducts, clothingProducts, featuredCategories } from "@/lib/data";
+import { 
+  getFeaturedProducts, 
+  getClothingProducts, 
+  getCategories,
+  Product,
+  Category
+} from "@/lib/data";
+import { useQuery } from "@tanstack/react-query";
 
 const Home: React.FC = () => {
   const [_, setLocation] = useLocation();
+  const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
+  const [clothingProducts, setClothingProducts] = useState<Product[]>([]);
+  const [featuredCategories, setFeaturedCategories] = useState<Category[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setIsLoading(true);
+        const [featured, clothing, categories] = await Promise.all([
+          getFeaturedProducts(4),
+          getClothingProducts(5),
+          getCategories()
+        ]);
+        
+        setFeaturedProducts(featured);
+        setClothingProducts(clothing);
+        setFeaturedCategories(categories.slice(0, 4));
+      } catch (error) {
+        console.error("Error loading home page data:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadData();
+  }, []);
 
   const handleShopNow = () => {
     setLocation("/products");

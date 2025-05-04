@@ -1,14 +1,19 @@
 import React from "react";
 
 interface StarRatingProps {
-  rating: number;
-  reviews?: number;
+  rating: number | string;
+  reviews?: number | string;
   size?: "sm" | "md" | "lg";
 }
 
 const StarRating: React.FC<StarRatingProps> = ({ rating, reviews, size = "md" }) => {
-  const fullStars = Math.floor(rating);
-  const hasHalfStar = rating % 1 >= 0.5;
+  // Convert rating to number if it's a string
+  const numericRating = typeof rating === 'number' ? rating : parseFloat(rating);
+  const numericReviews = reviews !== undefined ? 
+    (typeof reviews === 'number' ? reviews : parseInt(reviews)) : undefined;
+  
+  const fullStars = Math.floor(numericRating);
+  const hasHalfStar = numericRating % 1 >= 0.5;
   const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
 
   const starSize = {
@@ -36,7 +41,7 @@ const StarRating: React.FC<StarRatingProps> = ({ rating, reviews, size = "md" })
       </div>
       {reviews !== undefined && (
         <span className={`text-text-secondary ml-1 ${reviewSize[size]}`}>
-          ({reviews})
+          ({numericReviews})
         </span>
       )}
     </div>

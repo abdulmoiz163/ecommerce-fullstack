@@ -1,17 +1,38 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import ProductGrid from "@/components/ui/product-grid";
-import { allProducts } from "@/lib/data";
+import { getAllProducts, fetchProductsByCategory, Product, allCategories } from "@/lib/data";
 
 const Products: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>("Electronics");
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 2000]);
   const [sortOption, setSortOption] = useState<string>("Featured");
   const [showFilters, setShowFilters] = useState<boolean>(false);
-
-  // Filter products by selected category
-  const filteredProducts = allProducts.filter(
-    product => product.category === selectedCategory || selectedCategory === "All Products"
-  );
+  const [products, setProducts] = useState<Product[]>([]);
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  
+  // Load products when component mounts
+  useEffect(() => {
+    const loadProducts = async () => {
+      setIsLoading(true);
+      try {
+        let fetchedProducts;
+        if (selectedCategory === "All Products") {
+          fetchedProducts = await getAllProducts();
+        } else {
+          fetchedProducts = await fetchProductsByCategory(selectedCategory);
+        }
+        setProducts(fetchedProducts);
+        setFilteredProducts(fetchedProducts);
+      } catch (error) {
+        console.error("Error loading products:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    loadProducts();
+  }, [selectedCategory]);
 
   const handleCategoryChange = (category: string) => {
     setSelectedCategory(category);
